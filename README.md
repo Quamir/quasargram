@@ -3,7 +3,7 @@ https://www.udemy.com/course/pwa-with-vuejs-quasar-firebase/
 Instructor 
 Danny Connell
 
-A PWA instagram style Web app bulit with Vuejs, Firebase NodeJs and Quasar FrameWork
+(PWA) instagram style Web app bulit with Vuejs, Firebase NodeJs and Quasar FrameWork
 
 #  quasargram (quasargram)
 A Quasar Project
