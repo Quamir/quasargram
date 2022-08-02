@@ -46,12 +46,20 @@
       <div class="row justify-center q-ma-md">
         <q-input
           v-model="post.location"
+          :loading="locationLoading"
           class="col col-sm-6"
           label="location"
           dense
         >
           <template v-slot:append>
-            <q-btn round dense flat icon="eva-navigation-2-outline"></q-btn>
+            <q-btn
+              v-if="!locationLoading && locationSupported"
+              @click="getLocation"
+              round
+              dense
+              flat
+              icon="eva-navigation-2-outline"
+            ></q-btn>
           </template>
         </q-input>
       </div>
@@ -79,6 +87,7 @@ export default {
       imageCaptured: false,
       imageUpload: [],
       hasCameraSupport: true,
+      locationLoading: false,
     };
   },
   methods: {
@@ -93,6 +102,13 @@ export default {
         .catch((error) => {
           this.hasCameraSupport = false;
         });
+    },
+    computed: {
+      locationSupported() {
+        if ("geolocation" in navigator) return;
+        ture;
+        return false;
+      },
     },
     captureImage() {
       let video = this.$refs.video;
@@ -109,7 +125,7 @@ export default {
       this.post.photo = file;
 
       let canvas = this.$refs.canvas;
-      let context = canvas.getContext('2d');
+      let context = canvas.getContext("2d");
 
       const render = new FileReader();
       render.onload = (event) => {
@@ -124,8 +140,8 @@ export default {
       };
       render.readAsDataURL(file);
     },
-    disableCamera(){
-      this.$refs.video.srcObject.getVideoTracks().forEach(track =>{
+    disableCamera() {
+      this.$refs.video.srcObject.getVideoTracks().forEach((track) => {
         track.stop();
       });
     },
@@ -152,15 +168,52 @@ export default {
       var blob = new Blob([ab], { type: mimeString });
       return blob;
     },
+    getLocation() {
+      this.locationLoading = true;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.getCityAndCountry(position);
+        },
+        (err) => {
+          console.log("err:", err);
+        },
+        { timeout: 7000 }
+      );
+    },
+    getCityAndCountry(position) {
+      let apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`;
+      this.$axios
+        .get(apiUrl)
+        .then((result) => {
+          this.locationSuccess(result);
+        })
+        .catch((err) => {
+          console.log("err:", err);
+        });
+    },
+    locationSuccess(result) {
+      this.post.location = result.data.address.county;
+      if (result.data.address.country) {
+        this.post.location += `, ${result.data.address.country}`;
+      }
+      this.locationLoading = false;
+    },
+    locationError() {
+      this.$q.dialog({
+        title: "Error",
+        message: "Could not find your location.",
+      });
+      this.locationLoading = false;
+    },
   },
   mounted() {
     this.initCamera();
   },
-  beforeDestroy(){
-    if (this.hasCameraSupport){
+  beforeDestroy() {
+    if (this.hasCameraSupport) {
       this.disableCamera();
     }
-  }
+  },
 };
 </script>
 
