@@ -53,7 +53,7 @@
         >
           <template v-slot:append>
             <q-btn
-              v-if="!locationLoading && locationSupported"
+              v-if="!locationLoading"
               @click="getLocation"
               round
               dense
@@ -102,13 +102,6 @@ export default {
         .catch((error) => {
           this.hasCameraSupport = false;
         });
-    },
-    computed: {
-      locationSupported() {
-        if ("geolocation" in navigator) return;
-        ture;
-        return false;
-      },
     },
     captureImage() {
       let video = this.$refs.video;
